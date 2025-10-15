@@ -1,0 +1,26 @@
+# Angular build outputs
+/dist
+/tmp
+/out-tsc
+/.angular
+/.cache
+/coverage
+
+# Dependencies
+/node_modules
+
+# Environment files
+*.env
+
+# IDEs and editors
+.vscode/
+.idea/
+*.iml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+
+#Ignore vscode AI rules
+.github\instructions\codacy.instructions.md
