@@ -9,28 +9,40 @@ export function LoginScreen() {
 
   // 🔍 Verifica si ya existe una sesión activa
   useEffect(() => {
-    fetch("http://localhost:5000/session-check", { credentials: "include" })
-      .then((res) => res.json())
+    fetch("https://outlookbackend.onrender.com/session-check", {
+      method: "GET",
+      credentials: "include", // 👈 Permite enviar cookies
+      headers: {
+        "Accept": "application/json",
+        "Cache-Control": "no-cache",
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Respuesta HTTP ${res.status}`);
+        return res.json();
+      })
       .then((data) => {
-        if (data.token) {
+        if (data?.token) {
           setSessionActive(true);
-          console.log("Sesión activa detectada ✅");
+          console.log("✅ Sesión activa detectada");
+        } else {
+          console.log("🚪 No hay sesión activa");
         }
       })
-      .catch((err) => console.error("Error comprobando sesión:", err));
+      .catch((err) => console.error("❌ Error comprobando sesión:", err));
   }, []);
 
   // 🔑 Manejar clic de inicio de sesión
   const handleLoginClick = () => {
     setLoading(true);
-    window.location.href = "http://localhost:5000/auth/login";
+    window.location.href = "https://outlookbackend.onrender.com/auth/login";
   };
 
-  // 🧭 Si ya hay sesión, puede redirigir a Dashboard (opcional)
+  // 🧭 Si ya hay sesión activa (opcional)
   useEffect(() => {
     if (sessionActive) {
-      // Ejemplo: redirigir automáticamente al dashboard
-      // window.location.href = "/dashboard";
+      console.log("🟢 Redirigiendo a Dashboard...");
+       window.location.href = "/dashboard"; // Descomenta si lo deseas
     }
   }, [sessionActive]);
 

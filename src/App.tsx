@@ -10,7 +10,7 @@ export default function App() {
 
   useEffect(() => {
     // Verificar si ya hay sesión activa en backend
-    fetch("http://localhost:5000/me", { credentials: "include" })
+    fetch("https://outlookbackend.onrender.com/me", { credentials: "include" })
       .then((res) => {
         if (res.ok) {
           // Si ya está logueado, mostrar primero pantalla de permisos
@@ -28,7 +28,7 @@ export default function App() {
 
 const handleLogout = async () => {
   try {
-    await fetch("http://localhost:5000/logout", {
+    await fetch("https://outlookbackend.onrender.com/logout", {
       method: "POST",
       credentials: "include",
     });
