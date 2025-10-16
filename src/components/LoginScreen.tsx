@@ -9,7 +9,7 @@ export function LoginScreen() {
 
   // 🔍 Verifica si ya existe una sesión activa
   useEffect(() => {
-    fetch("https://outlookbackend.onrender.com/session-check", {
+    fetch("https://outlook-b.onrender.com/session-check", {
       method: "GET",
       credentials: "include", // 👈 Permite enviar cookies
       headers: {
@@ -35,7 +35,7 @@ export function LoginScreen() {
   // 🔑 Manejar clic de inicio de sesión
   const handleLoginClick = () => {
     setLoading(true);
-    window.location.href = "https://outlookbackend.onrender.com/auth/login";
+    window.location.href = "https://outlook-b.onrender.com/auth/login";
   };
 
   // 🧭 Si ya hay sesión activa (opcional)

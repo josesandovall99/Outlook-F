@@ -11,7 +11,7 @@ export function PermissionsScreen() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await fetch("https://outlookbackend.onrender.com/session-check", {
+        const res = await fetch("https://outlook-b.onrender.com/session-check", {
           method: "GET",
           credentials: "include", // 👈 envía cookies de sesión
           headers: {
