@@ -3,7 +3,11 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { CheckCircle, Mail, Users, Shield } from "lucide-react";
 
-export function PermissionsScreen() {
+type PermissionsScreenProps = {
+  onAccept: () => void;
+};
+
+export function PermissionsScreen({ onAccept }: PermissionsScreenProps) {
   const [sessionActive, setSessionActive] = useState(false);
   const [checking, setChecking] = useState(true);
 
@@ -13,7 +17,7 @@ export function PermissionsScreen() {
       try {
         const res = await fetch("https://outlook-b.onrender.com/session-check", {
           method: "GET",
-          credentials: "include", // 👈 envía cookies de sesión
+          credentials: "include",
           headers: {
             "Accept": "application/json",
             "Cache-Control": "no-cache",
@@ -22,7 +26,7 @@ export function PermissionsScreen() {
 
         if (!res.ok) {
           console.warn("⚠️ Respuesta inesperada:", res.status);
-          window.location.href = "/";
+          setSessionActive(false);
           return;
         }
 
@@ -31,12 +35,12 @@ export function PermissionsScreen() {
           setSessionActive(true);
           console.log("✅ Sesión activa detectada en PermissionsScreen");
         } else {
-          console.log("🚪 No hay sesión activa, redirigiendo al login...");
-          window.location.href = "/";
+          console.log("🚪 No hay sesión activa");
+          setSessionActive(false);
         }
       } catch (err) {
         console.error("❌ Error comprobando sesión:", err);
-        window.location.href = "/";
+        setSessionActive(false);
       } finally {
         setChecking(false);
       }
@@ -62,10 +66,6 @@ export function PermissionsScreen() {
       description: "Conexión protegida con protocolos de seguridad Microsoft",
     },
   ];
-
-  const handleAccept = () => {
-    window.location.href = "/dashboard";
-  };
 
   if (checking) {
     return (
@@ -128,7 +128,7 @@ export function PermissionsScreen() {
           </div>
 
           <Button
-            onClick={handleAccept}
+            onClick={onAccept}
             className="w-full bg-[#0078d4] hover:bg-[#106ebe] text-white py-3"
           >
             Aceptar y continuar
