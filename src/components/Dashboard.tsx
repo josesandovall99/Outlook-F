@@ -25,25 +25,21 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const [outlookCategories, setOutlookCategories] = useState<Category[]>([]);
   const [userName, setUserName] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("accessToken");
 
   // 🔹 Verificar sesión y cargar datos del usuario
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const sessionRes = await fetch("https://outlook-b.onrender.com/session-check", {
-          credentials: "include",
-        });
-        const sessionData = await sessionRes.json();
-
-        if (!sessionData.token) {
-          console.warn("Sesión no encontrada. Redirigiendo al login...");
-          window.location.href = "/";
-          return;
-        }
+        
 
         // Cargar datos del usuario autenticado
         const userRes = await fetch("https://outlook-b.onrender.com/me", {
           credentials: "include",
+          headers: {
+    Authorization: `Bearer ${token}`,
+    Accept: "application/json",
+  },
         });
         const userData = await userRes.json();
         setUserName(userData.displayName || userData.mail || "Usuario");
@@ -67,6 +63,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
       const res = await fetch("https://outlook-b.onrender.com/contacts-by-category", {
         method: "GET",
         credentials: "include",
+       headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        },
       });
 
       if (res.ok) {
@@ -97,6 +97,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
     await fetch("https://outlook-b.onrender.com/logout", {
       method: "POST",
       credentials: "include",
+      headers: {
+    Authorization: `Bearer ${token}`,
+    Accept: "application/json",
+  },
     });
   } catch (error) {
     console.error("Error al cerrar sesión:", error);

@@ -36,6 +36,7 @@ export function CategoryView({ category, onBack }: CategoryViewProps) {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("accessToken");
 
   // 🔹 Cargar contactos desde la API por categoría
   useEffect(() => {
@@ -43,6 +44,11 @@ export function CategoryView({ category, onBack }: CategoryViewProps) {
       try {
         const res = await fetch("https://outlook-b.onrender.com/contacts-by-category", {
           credentials: "include",
+          headers: {
+    Authorization: `Bearer ${token}`,
+    Accept: "application/json",
+  },
+
         });
         if (res.ok) {
           const data = await res.json();

@@ -10,31 +10,31 @@ type LoginScreenProps = {
 export function LoginScreen({ setAppState }: LoginScreenProps) {
   const [loading, setLoading] = useState(false);
   const [sessionActive, setSessionActive] = useState(false);
+  const token = localStorage.getItem("accessToken");
 
   // 🔍 Verifica si ya existe una sesión activa
   useEffect(() => {
-    fetch("https://outlook-b.onrender.com/session-check", {
-      method: "GET",
-      credentials: "include", // 👈 Permite enviar cookies
-      headers: {
-        "Accept": "application/json",
-        "Cache-Control": "no-cache",
-      },
+  const token = localStorage.getItem("accessToken");
+  if (!token) return;
+
+  fetch("https://outlook-b.onrender.com/me", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
+  })
+    .then((res) => {
+      if (res.ok) {
+        setSessionActive(true);
+        console.log("✅ Token válido, sesión activa");
+      } else {
+        console.log("🚪 Token inválido");
+      }
     })
-      .then((res) => {
-        if (!res.ok) throw new Error(`Respuesta HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (data?.token) {
-          setSessionActive(true);
-          console.log("✅ Sesión activa detectada");
-        } else {
-          console.log("🚪 No hay sesión activa");
-        }
-      })
-      .catch((err) => console.error("❌ Error comprobando sesión:", err));
-  }, []);
+    .catch((err) => console.error("❌ Error comprobando token:", err));
+}, []);
+
 
   // 🔑 Manejar clic de inicio de sesión
   const handleLoginClick = () => {

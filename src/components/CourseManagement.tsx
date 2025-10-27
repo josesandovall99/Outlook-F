@@ -35,6 +35,7 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState<"setup" | "upload" | "merge" | "result">("setup");
+  const token = localStorage.getItem("accessToken");
 
   // ✅ Manejar subida de archivos (ahora sí abre el explorador)
   const handleFileUpload = (fileNumber: 1 | 2, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,6 +74,10 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
         method: "POST",
         body: formData,
         credentials: "include",
+        headers: {
+    Authorization: `Bearer ${token}`,
+    Accept: "application/json",
+  },
       });
 
       const data = await response.json();

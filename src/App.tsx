@@ -2,14 +2,34 @@ import { useEffect, useState } from "react";
 import { LoginScreen } from "./components/LoginScreen";
 import { PermissionsScreen } from "./components/PermissionsScreen";
 import { Dashboard } from "./components/Dashboard";
+import { TokenCallback } from "./components/token-callback"; // 👈 asegúrate de importar correctamente
 
-type AppState = "checking" | "login" | "permissions" | "dashboard";
+type AppState = "checking" | "login" | "permissions" | "dashboard" | "token-callback";
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>("checking");
 
+  // ✅ Función para guardar el token si lo necesitas en otros componentes
+  const handleToken = (token: string) => {
+    localStorage.setItem("accessToken", token);
+  };
+
   useEffect(() => {
-    fetch("https://outlook-b.onrender.com/me", { credentials: "include" })
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      setAppState("login");
+      return;
+    }
+
+    // ✅ Verifica si el token sigue siendo válido
+    fetch("https://outlook-b.onrender.com/me", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+    })
       .then((res) => {
         if (res.ok) {
           setAppState("permissions");
@@ -25,16 +45,8 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    try {
-      await fetch("https://outlook-b.onrender.com/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
-    } finally {
-      setAppState("login");
-    }
+    localStorage.removeItem("accessToken"); // ✅ limpia el token
+    setAppState("login");
   };
 
   const renderCurrentScreen = () => {
@@ -47,6 +59,8 @@ export default function App() {
         return <PermissionsScreen onAccept={handleAcceptPermissions} />;
       case "dashboard":
         return <Dashboard onLogout={handleLogout} />;
+      case "token-callback":
+        return <TokenCallback setAppState={setAppState} />;
     }
   };
 
