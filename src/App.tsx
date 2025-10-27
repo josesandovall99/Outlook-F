@@ -5,15 +5,10 @@ import { Dashboard } from "./components/Dashboard";
 
 type AppState = "checking" | "login" | "permissions" | "dashboard";
 
-type LoginScreenProps = {
-  setAppState: (state: "checking" | "login" | "permissions" | "dashboard") => void;
-};
-
 export default function App() {
   const [appState, setAppState] = useState<AppState>("checking");
 
   useEffect(() => {
-    // Verificar si ya hay sesión activa en backend
     fetch("https://outlook-b.onrender.com/me", { credentials: "include" })
       .then((res) => {
         if (res.ok) {
