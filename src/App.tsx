@@ -2,27 +2,29 @@ import { useEffect, useState } from "react";
 import { LoginScreen } from "./components/LoginScreen";
 import { PermissionsScreen } from "./components/PermissionsScreen";
 import { Dashboard } from "./components/Dashboard";
-import { TokenCallback } from "./components/token-callback"; // 👈 asegúrate de importar correctamente
+import { TokenCallback } from "./components/token-callback";
 
 type AppState = "checking" | "login" | "permissions" | "dashboard" | "token-callback";
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>("checking");
 
-  // ✅ Función para guardar el token si lo necesitas en otros componentes
-  const handleToken = (token: string) => {
-    localStorage.setItem("accessToken", token);
-  };
-
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const currentPath = window.location.pathname;
 
+    // ✅ Si la URL es /token-callback, monta ese componente
+    if (currentPath === "/token-callback") {
+      setAppState("token-callback");
+      return;
+    }
+
+    // ✅ Si ya hay token guardado, verifica si es válido
+    const token = localStorage.getItem("accessToken");
     if (!token) {
       setAppState("login");
       return;
     }
 
-    // ✅ Verifica si el token sigue siendo válido
     fetch("https://outlook-b.onrender.com/me", {
       method: "GET",
       headers: {
@@ -34,10 +36,14 @@ export default function App() {
         if (res.ok) {
           setAppState("permissions");
         } else {
+          localStorage.removeItem("accessToken");
           setAppState("login");
         }
       })
-      .catch(() => setAppState("login"));
+      .catch(() => {
+        localStorage.removeItem("accessToken");
+        setAppState("login");
+      });
   }, []);
 
   const handleAcceptPermissions = () => {
@@ -45,7 +51,7 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    localStorage.removeItem("accessToken"); // ✅ limpia el token
+    localStorage.removeItem("accessToken");
     setAppState("login");
   };
 

@@ -6,17 +6,19 @@ type TokenCallbackProps = {
 
 export function TokenCallback({ setAppState }: TokenCallbackProps) {
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
 
-    if (token) {
-      localStorage.setItem("accessToken", token);
-      setAppState("permissions");
-    } else {
-      console.error("❌ No se recibió token");
-      setAppState("login");
-    }
-  }, []);
+  console.log("🔑 Token recibido en TokenCallback:", token);
+
+  if (token) {
+    localStorage.setItem("accessToken", token);
+    setAppState("permissions");
+  } else {
+    console.error("❌ No se recibió token");
+    setAppState("login");
+  }
+}, []);
 
   return <p className="text-center mt-10">Procesando autenticación...</p>;
 }
