@@ -3,7 +3,11 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
-export function LoginScreen() {
+type LoginScreenProps = {
+  setAppState: (state: "checking" | "login" | "permissions" | "dashboard") => void;
+};
+
+export function LoginScreen({ setAppState }: LoginScreenProps) {
   const [loading, setLoading] = useState(false);
   const [sessionActive, setSessionActive] = useState(false);
 
@@ -42,7 +46,7 @@ export function LoginScreen() {
   useEffect(() => {
     if (sessionActive) {
       console.log("🟢 Redirigiendo a Dashboard...");
-       window.location.href = "/dashboard"; // Descomenta si lo deseas
+       setAppState("dashboard");// Descomenta si lo deseas
     }
   }, [sessionActive]);
 
@@ -95,7 +99,7 @@ export function LoginScreen() {
               <div className="text-slate-700">
                 <p>✅ Ya tienes una sesión activa.</p>
                 <Button
-                  onClick={() => (window.location.href = "/dashboard")}
+                  onClick={() => (setAppState("dashboard"))}
                   className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white py-6 rounded-lg"
                 >
                   Ir al Dashboard

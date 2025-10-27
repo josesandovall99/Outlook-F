@@ -5,6 +5,10 @@ import { Dashboard } from "./components/Dashboard";
 
 type AppState = "checking" | "login" | "permissions" | "dashboard";
 
+type LoginScreenProps = {
+  setAppState: (state: "checking" | "login" | "permissions" | "dashboard") => void;
+};
+
 export default function App() {
   const [appState, setAppState] = useState<AppState>("checking");
 
@@ -13,7 +17,6 @@ export default function App() {
     fetch("https://outlook-b.onrender.com/me", { credentials: "include" })
       .then((res) => {
         if (res.ok) {
-          // Si ya está logueado, mostrar primero pantalla de permisos
           setAppState("permissions");
         } else {
           setAppState("login");
@@ -26,25 +29,25 @@ export default function App() {
     setAppState("dashboard");
   };
 
-const handleLogout = async () => {
-  try {
-    await fetch("https://outlook-b.onrender.com/logout", {
-      method: "POST",
-      credentials: "include",
-    });
-  } catch (error) {
-    console.error("Error al cerrar sesión:", error);
-  } finally {
-    setAppState("login"); // 👈 Regresa a la pantalla de login
-  }
-};
+  const handleLogout = async () => {
+    try {
+      await fetch("https://outlook-b.onrender.com/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    } finally {
+      setAppState("login");
+    }
+  };
 
   const renderCurrentScreen = () => {
     switch (appState) {
       case "checking":
         return <p className="text-center mt-10">Verificando sesión...</p>;
       case "login":
-        return <LoginScreen />;
+        return <LoginScreen setAppState={setAppState} />;
       case "permissions":
         return <PermissionsScreen onAccept={handleAcceptPermissions} />;
       case "dashboard":
