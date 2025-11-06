@@ -12,7 +12,6 @@ import {
   Merge,
   Loader2,
   Download,
-  AlertCircle,
 } from "lucide-react";
 
 interface CourseManagementProps {
@@ -35,16 +34,11 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
   const [totalRegistros, setTotalRegistros] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState<
-    "setup" | "upload" | "merge" | "result"
-  >("setup");
+  const [currentStep, setCurrentStep] = useState<"setup" | "upload" | "merge" | "result">("setup");
   const token = localStorage.getItem("accessToken");
 
-  // 📂 Subida de archivos
-  const handleFileUpload = (
-    fileNumber: 1 | 2,
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  // ✅ Manejar subida de archivos (ahora sí abre el explorador)
+  const handleFileUpload = (fileNumber: 1 | 2, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -60,7 +54,7 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
     else setFile2(fileData);
   };
 
-  // 🔁 Unificar archivos
+  // ✅ Lógica para enviar al backend
   const handleMergeFiles = async () => {
     if (!file1 || !file2 || !categoryName.trim()) {
       setMessage("⚠️ Debes ingresar la categoría y subir ambos archivos.");
@@ -81,9 +75,9 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
         body: formData,
         credentials: "include",
         headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
+    Authorization: `Bearer ${token}`,
+    Accept: "application/json",
+  },
       });
 
       const data = await response.json();
@@ -102,29 +96,23 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
     }
   };
 
-  // 📥 Descargar CSV
-  const handleDownloadCSV = () => {
-    if (!csvPath) return;
-    const cleanPath = csvPath.startsWith("/") ? csvPath.slice(1) : csvPath;
-    const fileName = cleanPath.split("/").pop() || "categoria.csv";
-    const link = document.createElement("a");
-    link.href = `https://outlook-b.onrender.com/${cleanPath}`;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  // ✅ Descargar CSV generado
+  // ✅ Descargar CSV generado (versión corregida)
+const handleDownloadCSV = () => {
+  if (!csvPath) return;
 
-  // 🔄 Reiniciar
-  const handleStartOver = () => {
-    setCategoryName("");
-    setFile1(null);
-    setFile2(null);
-    setCsvPath(null);
-    setTotalRegistros(null);
-    setMessage(null);
-    setCurrentStep("setup");
-  };
+  // Elimina doble barra si existe
+  const cleanPath = csvPath.startsWith("/") ? csvPath.slice(1) : csvPath;
+  const fileName = cleanPath.split("/").pop() || "categoria.csv";
+
+  const link = document.createElement("a");
+  link.href = `https://outlook-b.onrender.com/${cleanPath}`;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 
   const getStepProgress = () => {
     switch (currentStep) {
@@ -144,34 +132,22 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center space-x-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
           <Button variant="ghost" size="sm" onClick={onBack} className="text-slate-600">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver
           </Button>
           <div>
-            <h1 className="text-slate-800 text-lg md:text-xl">
-              Crear Nueva Categoría
-            </h1>
-            <p className="text-slate-600 text-sm">
-              Unifica estudiantes de dos plataformas universitarias
+            <h1 className="text-2xl text-slate-800 font-semibold">Crear Nueva Categoría</h1>
+            <p className="text-slate-600">
+              Unifica estudiantes de dos plataformas universitarias en una categoría de Outlook
             </p>
           </div>
         </div>
-        {currentStep !== "setup" && (
-          <Button
-            variant="outline"
-            onClick={handleStartOver}
-            disabled={isProcessing}
-            className="w-full sm:w-auto"
-          >
-            Comenzar de nuevo
-          </Button>
-        )}
       </div>
 
-      {/* Progreso */}
+      {/* Progress */}
       <Card className="p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-slate-600">Progreso</span>
@@ -183,33 +159,18 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
       {/* Paso 1 */}
       {currentStep === "setup" && (
         <Card className="p-6 space-y-4">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <AlertCircle className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <h2 className="text-lg text-slate-800">Nueva Categoría</h2>
-              <p className="text-slate-600 text-sm">
-                Define el nombre de la categoría que se creará
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <Label>Nombre de la categoría</Label>
-            <Input
-              value={categoryName}
-              onChange={(e) => setCategoryName(e.target.value)}
-              placeholder="Ej: INTEGRA2025-II"
-            />
-          </div>
-
+          <Label>Nombre de la categoría</Label>
+          <Input
+            value={categoryName}
+            onChange={(e) => setCategoryName(e.target.value)}
+            placeholder="Ej: INTEGRA2025-II"
+          />
           <Button
             onClick={() => setCurrentStep("upload")}
             disabled={!categoryName.trim()}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white"
           >
-            Continuar con la carga de archivos
+            Continuar
           </Button>
         </Card>
       )}
@@ -218,51 +179,33 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
       {currentStep === "upload" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[file1, file2].map((fileData, i) => (
-            <Card key={i} className="p-6 space-y-4">
-              <div className="flex items-center space-x-3">
-                <div
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    i === 0 ? "bg-blue-100" : "bg-purple-100"
-                  }`}
-                >
-                  <FileSpreadsheet
-                    className={`w-5 h-5 ${
-                      i === 0 ? "text-blue-600" : "text-purple-600"
-                    }`}
-                  />
-                </div>
-                <div>
-                  <h2 className="text-lg text-slate-800">
-                    Plataforma {i === 0 ? "A" : "B"}
-                  </h2>
-                  <p className="text-slate-600 text-sm">
-                    {i === 0 ? "Sistema académico" : "Sistema de seguimiento"}
-                  </p>
-                </div>
+            <Card key={i} className="p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <FileSpreadsheet className="w-5 h-5 text-blue-600" />
+                <h2 className="text-lg text-slate-800 font-medium">
+                  Plataforma {i === 0 ? "A (Moodle)" : "B (Galileo)"}
+                </h2>
               </div>
 
               {!fileData ? (
                 <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
-                  {isProcessing ? (
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600" />
-                  ) : (
-                    <>
-                      <Upload className="w-8 h-8 text-slate-400 mx-auto mb-3" />
-                      <p className="text-slate-700 mb-2">Sube un archivo Excel (.xlsx)</p>
-                      <input
-                        type="file"
-                        accept=".xlsx"
-                        id={`file-${i}`}
-                        className="hidden"
-                        onChange={(e) => handleFileUpload(i === 0 ? 1 : 2, e)}
-                      />
-                      <label htmlFor={`file-${i}`}>
-                        <Button variant="outline" className="cursor-pointer">
-                          Seleccionar archivo
-                        </Button>
-                      </label>
-                    </>
-                  )}
+                  <Upload className="w-8 h-8 text-slate-400 mx-auto mb-3" />
+                  <p className="text-slate-600 mb-4">Sube un archivo Excel</p>
+
+                  {/* ✅ input visible al hacer clic en el label */}
+                  <input
+                    type="file"
+                    accept=".xlsx"
+                    id={`file-${i}`}
+                    className="hidden"
+                    onChange={(e) => handleFileUpload(i === 0 ? 1 : 2, e)}
+                  />
+
+                  <label htmlFor={`file-${i}`}>
+                    <Button asChild variant="outline">
+                      <span>Seleccionar archivo</span>
+                    </Button>
+                  </label>
                 </div>
               ) : (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -289,13 +232,13 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
         </div>
       )}
 
-      {/* Unificar */}
+      {/* Paso 3 */}
       {currentStep === "upload" && file1 && file2 && (
         <Card className="p-6 text-center">
           <Button
             onClick={handleMergeFiles}
             disabled={isProcessing}
-            className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3"
+            className="bg-orange-600 hover:bg-orange-700 text-white"
           >
             {isProcessing ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -307,34 +250,24 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
         </Card>
       )}
 
-      {/* Resultado */}
+      {/* Paso 4 */}
       {currentStep === "result" && (
         <Card className="p-6 text-center space-y-4">
           <CheckCircle className="w-10 h-10 text-green-600 mx-auto" />
           <h2 className="text-xl text-slate-800 font-medium">
-            CSV generado para "{categoryName}"
+            CSV generado para la categoría "{categoryName}"
           </h2>
           {totalRegistros && (
             <p className="text-slate-600">Total de registros: {totalRegistros}</p>
           )}
           {message && <p className="text-green-700">{message}</p>}
 
-          <div className="flex flex-col sm:flex-row justify-center gap-3 mt-4">
-            <Button
-              onClick={handleDownloadCSV}
-              className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Descargar CSV
-            </Button>
-            <Button
-              onClick={handleStartOver}
-              variant="outline"
-              className="w-full sm:w-auto"
-            >
-              Crear nueva categoría
-            </Button>
-          </div>
+          <Button
+            onClick={handleDownloadCSV}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            <Download className="w-4 h-4 mr-2" /> Descargar CSV
+          </Button>
         </Card>
       )}
     </div>
