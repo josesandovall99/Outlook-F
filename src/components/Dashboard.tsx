@@ -1,28 +1,14 @@
 import { useEffect, useState } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import {
   Users, FileSpreadsheet, Folder, Settings,
-  Mail, GraduationCap, ChevronRight
+  GraduationCap, ChevronRight, Menu
 } from "lucide-react";
 import { CategoryView } from "./CategoryView";
 import { CourseManagement } from "./CourseManagement";
-
-// Importa tu slide bar
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarTrigger,
-  SidebarInset,
-} from "./ui/sidebar";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 
 interface DashboardProps {
   onLogout?: () => void;
@@ -41,22 +27,22 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const [outlookCategories, setOutlookCategories] = useState<Category[]>([]);
   const [userName, setUserName] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const token = localStorage.getItem("accessToken");
 
-  // 🔹 Verificar sesión y cargar datos
+  // Verificar sesión y cargar datos del usuario
   useEffect(() => {
     const checkSession = async () => {
       try {
         const userRes = await fetch("https://outlook-b.onrender.com/me", {
+          credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: "application/json",
           },
         });
-        if (!userRes.ok) throw new Error("No autenticado");
         const userData = await userRes.json();
-        setUserName(userData.graph?.displayName || userData.graph?.mail || "Usuario");
-
+        setUserName(userData.displayName || userData.mail || "Usuario");
         await fetchCategories();
       } catch (err) {
         console.error("Error verificando sesión:", err);
@@ -68,15 +54,18 @@ export function Dashboard({ onLogout }: DashboardProps) {
     checkSession();
   }, []);
 
-  // 🔹 Cargar categorías
+  // Cargar categorías desde backend
   const fetchCategories = async () => {
     try {
       const res = await fetch("https://outlook-b.onrender.com/contacts-by-category", {
+        method: "GET",
+        credentials: "include",
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
       });
+
       if (res.ok) {
         const data = await res.json();
         const categoriesArray: Category[] = Object.keys(data).map((key, idx) => ({
@@ -86,48 +75,71 @@ export function Dashboard({ onLogout }: DashboardProps) {
           color: ["bg-blue-500", "bg-green-500", "bg-yellow-500", "bg-red-500"][idx % 4],
         }));
         setOutlookCategories(categoriesArray);
+      } else {
+        console.error("Error cargando categorías");
       }
     } catch (err) {
-      console.error("Error cargando categorías:", err);
+      console.error(err);
     }
   };
 
+  // Seleccionar una categoría
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId);
     setActiveView("category");
+    setMobileMenuOpen(false); // cerrar menú en móvil al navegar
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    if (onLogout) onLogout();
-    else window.location.href = "/";
+  const handleLogout = async () => {
+    try {
+      await fetch("https://outlook-b.onrender.com/logout", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    } finally {
+      localStorage.clear();
+      sessionStorage.clear();
+      if (onLogout) {
+        onLogout();
+      } else {
+        window.location.href = "/";
+      }
+    }
   };
 
-  // 🔹 Renderiza contenido según vista activa
+  // Renderiza contenido según vista activa
   const renderContent = () => {
     if (activeView === "category" && selectedCategory) {
       const category = outlookCategories.find(c => c.id === selectedCategory);
       return <CategoryView category={category!} onBack={() => setActiveView("home")} />;
     }
-    if (activeView === "courses") return <CourseManagement onBack={() => setActiveView("home")} />;
+
+    if (activeView === "courses") {
+      return <CourseManagement onBack={() => setActiveView("home")} />;
+    }
 
     return (
       <div className="space-y-6">
         {/* Tarjeta bienvenida */}
-        <Card className="p-4 md:p-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+        <Card className="p-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0">
+          <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <GraduationCap className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="mb-1">Bienvenido, {userName}</h2>
-              <p className="text-blue-100 text-sm">Selecciona una categoría o gestiona tus cursos.</p>
+              <h2 className="text-xl mb-1">Bienvenido, {userName}</h2>
+              <p className="text-blue-100">Selecciona una categoría o gestiona tus cursos.</p>
             </div>
           </div>
         </Card>
 
-        {/* Lista de categorías */}
+        {/* Lista de categorías desde backend */}
         <Card className="p-6">
           <h3 className="text-slate-800 mb-4">Categorías de Contactos</h3>
           {outlookCategories.length === 0 ? (
@@ -166,64 +178,153 @@ export function Dashboard({ onLogout }: DashboardProps) {
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen">
-        {/* Sidebar */}
-        <Sidebar>
-          <SidebarHeader>
+    <div className="min-h-screen bg-slate-50">
+      {/* Header móvil: muestra trigger de menú solo en móvil/tablet */}
+      <div className="lg:hidden bg-white border-b border-slate-200 p-4 sticky top-0 z-20">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-slate-800">Sistema de Gestión</h1>
+            <p className="text-slate-600 text-xs">Contactos y Estudiantes</p>
+          </div>
+
+          {/* Menú lateral móvil/tablet usando Sheet */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Menu className="w-5 h-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-72 p-0">
+              {/* Header accesible para evitar el warning de DialogTitle */}
+              <SheetHeader className="p-4 border-b">
+                <SheetTitle>Menú de navegación</SheetTitle>
+              </SheetHeader>
+
+              {/* Contenido del sidebar (móvil) */}
+              <div className="p-4 space-y-2">
+                <Button
+                  variant={activeView === "home" ? "default" : "ghost"}
+                  className="w-full justify-start"
+                  onClick={() => {
+                    setActiveView("home");
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Dashboard
+                </Button>
+
+                <div className="pt-4">
+                  <p className="text-xs text-slate-500 mb-2 px-1">CATEGORÍAS OUTLOOK</p>
+                  {outlookCategories.map((category) => (
+                    <Button
+                      key={category.id}
+                      variant="ghost"
+                      className="w-full justify-start text-sm"
+                      onClick={() => handleCategorySelect(category.id)}
+                    >
+                      <Folder className="w-4 h-4 mr-2" />
+                      {category.name}
+                    </Button>
+                  ))}
+                </div>
+
+                <div className="pt-4">
+                  <p className="text-xs text-slate-500 mb-2 px-1">HERRAMIENTAS</p>
+                  <Button
+                    variant={activeView === "courses" ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => {
+                      setActiveView("courses");
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <FileSpreadsheet className="w-4 h-4 mr-2" />
+                    Gestión de Cursos
+                  </Button>
+                </div>
+
+                <div className="pt-4">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-slate-600"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Cerrar Sesión
+                  </Button>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
+
+      {/* Layout principal: sidebar fijo en desktop */}
+      <div className="flex">
+        {/* Sidebar fijo solo en desktop */}
+        <div className="hidden lg:block w-64 bg-white shadow-sm border-r border-slate-200 min-h-screen relative">
+          <div className="p-6 border-b border-slate-200">
             <h1 className="text-xl text-slate-800">Sistema de Gestión</h1>
             <p className="text-slate-600 text-sm">Contactos y Estudiantes</p>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel>Menú</SidebarGroupLabel>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton isActive={activeView === "home"} onClick={() => setActiveView("home")}>
-                    <Users className="w-4 h-4" /> Dashboard
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarGroupLabel>Categorías Outlook</SidebarGroupLabel>
-                {outlookCategories.map((category) => (
-                  <SidebarMenuItem key={category.id}>
-                    <SidebarMenuButton onClick={() => handleCategorySelect(category.id)}>
-                      <Folder className="w-4 h-4" /> {category.name}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-                <SidebarGroupLabel>Herramientas</SidebarGroupLabel>
-                <SidebarMenuItem>
-                  <SidebarMenuButton isActive={activeView === "courses"} onClick={() => setActiveView("courses")}>
-                    <FileSpreadsheet className="w-4 h-4" /> Gestión de Cursos
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroup>
-          </SidebarContent>
-          <SidebarFooter>
-            <Button variant="ghost" className="w-full justify-start text-slate-600" onClick={handleLogout}>
-              <Settings className="w-4 h-4 mr-2" /> Cerrar Sesión
+          </div>
+
+          <nav className="p-4 space-y-2">
+            <Button
+              variant={activeView === "home" ? "default" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => setActiveView("home")}
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Dashboard
             </Button>
-          </SidebarFooter>
-        </Sidebar>
+
+            <div className="pt-4">
+              <p className="text-xs text-slate-500 mb-2 px-3">CATEGORÍAS OUTLOOK</p>
+              {outlookCategories.map((category) => (
+                <Button
+                  key={category.id}
+                  variant="ghost"
+                  className="w-full justify-start text-sm"
+                  onClick={() => handleCategorySelect(category.id)}
+                >
+                  <Folder className="w-4 h-4 mr-2" />
+                  {category.name}
+                </Button>
+              ))}
+            </div>
+
+            <div className="pt-4">
+              <p className="text-xs text-slate-500 mb-2 px-3">HERRAMIENTAS</p>
+              <Button
+                variant={activeView === "courses" ? "default" : "ghost"}
+                className="w-full justify-start"
+                onClick={() => setActiveView("courses")}
+              >
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                Gestión de Cursos
+              </Button>
+            </div>
+          </nav>
+
+          <div className="absolute bottom-4 left-4 right-4">
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-slate-600"
+              onClick={handleLogout}
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Cerrar Sesión
+            </Button>
+          </div>
+        </div>
 
         {/* Contenido principal */}
-        <SidebarInset>
-          {/* Header móvil con trigger */}
-          <div className="lg:hidden bg-white border-b border-slate-200 p-4 sticky top-0 z-10 flex justify-between items-center">
-            <div>
-              <h1 className="text-slate-800">Sistema de Gestión</h1>
-              <p className="text-slate-600 text-xs">Contactos y Estudiantes</p>
-            </div>
-            <SidebarTrigger />
-          </div>
-
-          {/* Contenido dinámico */}
-          <div className="flex-1 p-4 md:p-6">
-            {renderContent()}
-          </div>
-        </SidebarInset>
+        <div className="flex-1 p-4 md:p-6">{renderContent()}</div>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }

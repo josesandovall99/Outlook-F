@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
-import {
-  ArrowLeft,
-  Search,
-  Filter,
-  Download,
-  Mail,
+import { 
+  ArrowLeft, 
+  Search, 
+  Filter, 
+  Download, 
+  Mail, 
   Phone,
   User
 } from "lucide-react";
@@ -38,11 +38,11 @@ export function CategoryView({ category, onBack }: CategoryViewProps) {
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("accessToken");
 
-  // 🔹 Cargar contactos desde la API por categoría
   useEffect(() => {
     const fetchContacts = async () => {
       try {
         const res = await fetch("https://outlook-b.onrender.com/contacts-by-category", {
+          credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: "application/json",
@@ -86,15 +86,21 @@ export function CategoryView({ category, onBack }: CategoryViewProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" onClick={onBack} className="text-slate-600">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Volver
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="text-slate-600"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Volver
           </Button>
           <div className="flex items-center space-x-3">
             <div className={`w-4 h-4 rounded-full ${category.color}`}></div>
             <div>
-              <h1 className="text-slate-800">{category.name}</h1>
+              <h1 className="text-xl sm:text-2xl text-slate-800">{category.name}</h1>
               <p className="text-slate-600 text-sm">{contacts.length} contactos</p>
             </div>
           </div>
@@ -102,10 +108,12 @@ export function CategoryView({ category, onBack }: CategoryViewProps) {
 
         <div className="flex flex-col sm:flex-row gap-2">
           <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
-            <Filter className="w-4 h-4 mr-2" /> Filtrar
+            <Filter className="w-4 h-4 mr-2" />
+            Filtrar
           </Button>
           <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
-            <Download className="w-4 h-4 mr-2" /> Exportar
+            <Download className="w-4 h-4 mr-2" />
+            Exportar
           </Button>
         </div>
       </div>
@@ -135,7 +143,7 @@ export function CategoryView({ category, onBack }: CategoryViewProps) {
         {filteredContacts.length > 0 ? (
           <div className="space-y-3">
             {filteredContacts.map((contact) => (
-              <div
+              <div 
                 key={contact.id}
                 className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors gap-3"
               >
@@ -173,7 +181,9 @@ export function CategoryView({ category, onBack }: CategoryViewProps) {
               <Search className="w-6 h-6 text-slate-400" />
             </div>
             <h3 className="text-slate-800 mb-1">No se encontraron contactos</h3>
-            <p className="text-slate-600 text-sm">Intenta modificar los términos de búsqueda</p>
+            <p className="text-slate-600 text-sm">
+              Intenta modificar los términos de búsqueda
+            </p>
           </div>
         )}
       </Card>

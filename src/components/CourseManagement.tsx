@@ -67,6 +67,7 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
       const response = await fetch("https://outlook-b.onrender.com/merge-files", {
         method: "POST",
         body: formData,
+        credentials: "include",
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
@@ -113,8 +114,8 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <Button variant="ghost" size="sm" onClick={onBack} className="text-slate-600">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <Button variant="ghost" size="sm" onClick={onBack} className="text-slate-600 self-start">
           <ArrowLeft className="w-4 h-4 mr-2" /> Volver
         </Button>
         <div>
@@ -164,6 +165,7 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
                   Plataforma {i === 0 ? "A (Moodle)" : "B (Galileo)"}
                 </h2>
               </div>
+
               {!fileData ? (
                 <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
                   <Upload className="w-8 h-8 text-slate-400 mx-auto mb-3" />
@@ -188,12 +190,14 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
                       <CheckCircle className="w-5 h-5 text-green-500" />
                       <div>
                         <h3 className="text-green-800">{fileData.name}</h3>
-                        <p className="text-green-600 text-sm">
-                          {fileData.size} • {fileData.records} registros
-                        </p>
+                        <p className="text-green-600 text-sm">{fileData.size}</p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => (i === 0 ? setFile1(null) : setFile2(null))}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => (i === 0 ? setFile1(null) : setFile2(null))}
+                    >
                       Cambiar
                     </Button>
                   </div>
@@ -221,7 +225,6 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
           </Button>
         </Card>
       )}
-
 
       {/* Paso 4 */}
       {currentStep === "result" && (
