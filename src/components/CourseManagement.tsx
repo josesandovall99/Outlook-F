@@ -5,13 +5,8 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Progress } from "./ui/progress";
 import {
-  ArrowLeft,
-  Upload,
-  FileSpreadsheet,
-  CheckCircle,
-  Merge,
-  Loader2,
-  Download,
+  ArrowLeft, Upload, FileSpreadsheet, CheckCircle,
+  Merge, Loader2, Download, Plus, AlertCircle
 } from "lucide-react";
 
 interface CourseManagementProps {
@@ -37,11 +32,9 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
   const [currentStep, setCurrentStep] = useState<"setup" | "upload" | "merge" | "result">("setup");
   const token = localStorage.getItem("accessToken");
 
-  // ✅ Manejar subida de archivos (ahora sí abre el explorador)
   const handleFileUpload = (fileNumber: 1 | 2, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const fileData: FileUpload = {
       name: file.name,
       size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
@@ -49,21 +42,17 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
       records: Math.floor(Math.random() * 200) + 50,
       file,
     };
-
     if (fileNumber === 1) setFile1(fileData);
     else setFile2(fileData);
   };
 
-  // ✅ Lógica para enviar al backend
   const handleMergeFiles = async () => {
     if (!file1 || !file2 || !categoryName.trim()) {
       setMessage("⚠️ Debes ingresar la categoría y subir ambos archivos.");
       return;
     }
-
     setIsProcessing(true);
     setMessage(null);
-
     try {
       const formData = new FormData();
       formData.append("categoryName", categoryName);
@@ -73,15 +62,13 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
       const response = await fetch("https://outlook-b.onrender.com/merge-files", {
         method: "POST",
         body: formData,
-        credentials: "include",
         headers: {
-    Authorization: `Bearer ${token}`,
-    Accept: "application/json",
-  },
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
       });
 
       const data = await response.json();
-
       if (!response.ok) throw new Error(data.message || "Error al unificar archivos");
 
       setCsvPath(data.csvPath);
@@ -96,54 +83,40 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
     }
   };
 
-  // ✅ Descargar CSV generado
-  // ✅ Descargar CSV generado (versión corregida)
-const handleDownloadCSV = () => {
-  if (!csvPath) return;
-
-  // Elimina doble barra si existe
-  const cleanPath = csvPath.startsWith("/") ? csvPath.slice(1) : csvPath;
-  const fileName = cleanPath.split("/").pop() || "categoria.csv";
-
-  const link = document.createElement("a");
-  link.href = `https://outlook-b.onrender.com/${cleanPath}`;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
+  const handleDownloadCSV = () => {
+    if (!csvPath) return;
+    const cleanPath = csvPath.startsWith("/") ? csvPath.slice(1) : csvPath;
+    const fileName = cleanPath.split("/").pop() || "categoria.csv";
+    const link = document.createElement("a");
+    link.href = `https://outlook-b.onrender.com/${cleanPath}`;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const getStepProgress = () => {
     switch (currentStep) {
-      case "setup":
-        return 25;
-      case "upload":
-        return 50;
-      case "merge":
-        return 75;
-      case "result":
-        return 100;
-      default:
-        return 0;
+      case "setup": return 25;
+      case "upload": return 50;
+      case "merge": return 75;
+      case "result": return 100;
+      default: return 0;
     }
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" onClick={onBack} className="text-slate-600">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver
-          </Button>
-          <div>
-            <h1 className="text-2xl text-slate-800 font-semibold">Crear Nueva Categoría</h1>
-            <p className="text-slate-600">
-              Unifica estudiantes de dos plataformas universitarias en una categoría de Outlook
-            </p>
-          </div>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <Button variant="ghost" size="sm" onClick={onBack} className="text-slate-600">
+          <ArrowLeft className="w-4 h-4 mr-2" /> Volver
+        </Button>
+        <div>
+          <h1 className="text-2xl text-slate-800 font-semibold">Crear Nueva Categoría</h1>
+          <p className="text-slate-600 text-sm">
+            Unifica estudiantes de dos plataformas universitarias en una categoría de Outlook
+          </p>
         </div>
       </div>
 
@@ -154,6 +127,12 @@ const handleDownloadCSV = () => {
           <span className="text-sm text-slate-600">{getStepProgress()}%</span>
         </div>
         <Progress value={getStepProgress()} className="h-2" />
+        <div className="flex justify-between mt-2 text-xs text-slate-500">
+          <span className={currentStep === "setup" ? "text-blue-600" : ""}>Configuración</span>
+          <span className={currentStep === "upload" ? "text-blue-600" : ""}>Carga</span>
+          <span className={currentStep === "merge" ? "text-blue-600" : ""}>Unificación</span>
+          <span className={currentStep === "result" ? "text-blue-600" : ""}>Resultado</span>
+        </div>
       </Card>
 
       {/* Paso 1 */}
@@ -177,7 +156,7 @@ const handleDownloadCSV = () => {
 
       {/* Paso 2 */}
       {currentStep === "upload" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {[file1, file2].map((fileData, i) => (
             <Card key={i} className="p-6">
               <div className="flex items-center space-x-3 mb-4">
@@ -186,21 +165,17 @@ const handleDownloadCSV = () => {
                   Plataforma {i === 0 ? "A (Moodle)" : "B (Galileo)"}
                 </h2>
               </div>
-
               {!fileData ? (
                 <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
                   <Upload className="w-8 h-8 text-slate-400 mx-auto mb-3" />
                   <p className="text-slate-600 mb-4">Sube un archivo Excel</p>
-
-                  {/* ✅ input visible al hacer clic en el label */}
                   <input
                     type="file"
-                    accept=".xlsx"
+                    accept=".xlsx,.xls,.csv"
                     id={`file-${i}`}
                     className="hidden"
                     onChange={(e) => handleFileUpload(i === 0 ? 1 : 2, e)}
                   />
-
                   <label htmlFor={`file-${i}`}>
                     <Button asChild variant="outline">
                       <span>Seleccionar archivo</span>
@@ -214,7 +189,9 @@ const handleDownloadCSV = () => {
                       <CheckCircle className="w-5 h-5 text-green-500" />
                       <div>
                         <h3 className="text-green-800">{fileData.name}</h3>
-                        <p className="text-green-600 text-sm">{fileData.size}</p>
+                        <p className="text-green-600 text-sm">
+                          {fileData.size} • {fileData.records} registros detectados
+                        </p>
                       </div>
                     </div>
                     <Button
@@ -238,7 +215,7 @@ const handleDownloadCSV = () => {
           <Button
             onClick={handleMergeFiles}
             disabled={isProcessing}
-            className="bg-orange-600 hover:bg-orange-700 text-white"
+            className="bg-orange-600 hover:bg-orange-700 text-white w-full sm:w-auto"
           >
             {isProcessing ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -262,12 +239,28 @@ const handleDownloadCSV = () => {
           )}
           {message && <p className="text-green-700">{message}</p>}
 
-          <Button
-            onClick={handleDownloadCSV}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            <Download className="w-4 h-4 mr-2" /> Descargar CSV
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+            <Button
+              onClick={handleDownloadCSV}
+              className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
+            >
+              <Download className="w-4 h-4 mr-2" /> Descargar CSV
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCategoryName("");
+                setFile1(null);
+                setFile2(null);
+                setCsvPath(null);
+                setTotalRegistros(null);
+                setCurrentStep("setup");
+              }}
+              className="w-full sm:w-auto"
+            >
+              Reiniciar
+            </Button>
+          </div>
         </Card>
       )}
     </div>
