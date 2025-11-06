@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
-import { Card } from "./ui/card";
-import { Button } from "./ui/button";
 import {
   Users, FileSpreadsheet, Folder, Settings,
   GraduationCap, ChevronRight, Menu
 } from "lucide-react";
 import { CategoryView } from "./CategoryView";
 import { CourseManagement } from "./CourseManagement";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 
 interface DashboardProps {
   onLogout?: () => void;
@@ -113,7 +110,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
     }
     return (
       <div className="space-y-6">
-        <Card className="p-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0">
+        <div className="p-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <GraduationCap className="w-6 h-6" />
@@ -123,9 +120,9 @@ export function Dashboard({ onLogout }: DashboardProps) {
               <p className="text-blue-100">Selecciona una categoría o gestiona tus cursos.</p>
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card className="p-6">
+        <div className="p-6 bg-white rounded-lg shadow">
           <h3 className="text-slate-800 mb-4">Categorías de Contactos</h3>
           {outlookCategories.length === 0 ? (
             <p className="text-slate-500">No hay categorías disponibles.</p>
@@ -149,7 +146,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
               ))}
             </div>
           )}
-        </Card>
+        </div>
       </div>
     );
   };
@@ -163,116 +160,45 @@ export function Dashboard({ onLogout }: DashboardProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header móvil con trigger */}
-      <div className="lg:hidden bg-white border-b border-slate-200 p-4 sticky top-0 z-20 flex justify-between items-center">
-        <h1 className="text-slate-800">Sistema de Gestión</h1>
-        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Menu className="w-5 h-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0">
-            <SheetHeader className="p-4 border-b">
-              <SheetTitle>Menú</SheetTitle>
-            </SheetHeader>
-            <div className="p-4 space-y-2">
-              <Button
-                variant={activeView === "home" ? "default" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => {
-                  setActiveView("home");
-                  setMobileMenuOpen(false);
-                }}
-              >
-                <Users className="w-4 h-4 mr-2" /> Dashboard
-              </Button>
+    <div className="min-h-screen bg-slate-50 flex">
+      {/* Sidebar fijo en desktop */}
+      <div className="hidden lg:block w-64 bg-white shadow-sm border-r border-slate-200 min-h-screen p-4 space-y-2">
+        <button
+          className={`w-full flex items-center p-2 rounded ${activeView === "home" ? "bg-blue-100" : "hover:bg-slate-100"}`}
+          onClick={() => setActiveView("home")}
+        >
+          <Users className="w-4 h-4 mr-2" /> Dashboard
+        </button>
 
-              <p className="text-xs text-slate-500 mt-4">CATEGORÍAS</p>
-              {outlookCategories.map((c) => (
-                <Button
-                  key={c.id}
-                  variant="ghost"
-                  className="w-full justify-start text-sm"
-                  onClick={() => handleCategorySelect(c.id)}
-                >
-                  <Folder className="w-4 h-4 mr-2" /> {c.name}
-                </Button>
-              ))}
+        <p className="text-xs text-slate-500 mt-4">CATEGORÍAS</p>
+        {outlookCategories.map((c) => (
+          <button
+            key={c.id}
+            className="w-full flex items-center p-2 rounded hover:bg-slate-100 text-sm"
+            onClick={() => handleCategorySelect(c.id)}
+          >
+            <Folder className="w-4 h-4 mr-2" /> {c.name}
+          </button>
+        ))}
 
-              <p className="text-xs text-slate-500 mt-4">HERRAMIENTAS</p>
-              <Button
-                variant={activeView === "courses" ? "default" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => {
-                  setActiveView("courses");
-                  setMobileMenuOpen(false);
-                }}
-              >
-                <FileSpreadsheet className="w-4 h-4 mr-2" /> Gestión de Cursos
-              </Button>
+        <p className="text-xs text-slate-500 mt-4">HERRAMIENTAS</p>
+        <button
+          className={`w-full flex items-center p-2 rounded ${activeView === "courses" ? "bg-blue-100" : "hover:bg-slate-100"}`}
+          onClick={() => setActiveView("courses")}
+        >
+          <FileSpreadsheet className="w-4 h-4 mr-2" /> Gestión de Cursos
+        </button>
 
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-slate-600 mt-4"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  handleLogout();
-                }}
-              >
-                <Settings className="w-4 h-4 mr-2" /> Cerrar Sesión
-              </Button>
-            </div>
-          </SheetContent>
-        </Sheet>
+        <button
+          className="w-full flex items-center p-2 rounded hover:bg-slate-100 text-slate-600 mt-4"
+          onClick={handleLogout}
+        >
+          <Settings className="w-4 h-4 mr-2" /> Cerrar Sesión
+        </button>
       </div>
 
-      {/* Layout principal con sidebar fijo en desktop */}
-      <div className="flex">
-                {/* Sidebar fijo en desktop */}
-        <div className="hidden lg:block w-64 bg-white shadow-sm border-r border-slate-200 min-h-screen p-4 space-y-2">
-          <Button
-            variant={activeView === "home" ? "default" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => setActiveView("home")}
-          >
-            <Users className="w-4 h-4 mr-2" /> Dashboard
-          </Button>
-
-          <p className="text-xs text-slate-500 mt-4">CATEGORÍAS</p>
-          {outlookCategories.map((c) => (
-            <Button
-              key={c.id}
-              variant="ghost"
-              className="w-full justify-start text-sm"
-              onClick={() => handleCategorySelect(c.id)}
-            >
-              <Folder className="w-4 h-4 mr-2" /> {c.name}
-            </Button>
-          ))}
-
-          <p className="text-xs text-slate-500 mt-4">HERRAMIENTAS</p>
-          <Button
-            variant={activeView === "courses" ? "default" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => setActiveView("courses")}
-          >
-            <FileSpreadsheet className="w-4 h-4 mr-2" /> Gestión de Cursos
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-slate-600 mt-4"
-            onClick={handleLogout}
-          >
-            <Settings className="w-4 h-4 mr-2" /> Cerrar Sesión
-          </Button>
-        </div>
-
-        {/* Contenido principal */}
-        <div className="flex-1 p-4 md:p-6">{renderContent()}</div>
-      </div>
+      {/* Contenido principal */}
+      <div className="flex-1 p-4 md:p-6">{renderContent()}</div>
     </div>
   );
 }
