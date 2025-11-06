@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "./ui/sheet";
 import {
   Users, FileSpreadsheet, Folder, Settings,
-  Mail, GraduationCap, ChevronRight, Clock, Menu
+  Mail, GraduationCap, ChevronRight, Menu
 } from "lucide-react";
 import { CategoryView } from "./CategoryView";
 import { CourseManagement } from "./CourseManagement";
-//import { FileHistory } from "./FileHistory";
 
 interface DashboardProps {
   onLogout?: () => void;
@@ -22,7 +21,7 @@ interface Category {
 }
 
 export function Dashboard({ onLogout }: DashboardProps) {
-  const [activeView, setActiveView] = useState<'home' | 'category' | 'courses' | 'history'>('home');
+  const [activeView, setActiveView] = useState<'home' | 'category' | 'courses'>('home');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [outlookCategories, setOutlookCategories] = useState<Category[]>([]);
   const [userName, setUserName] = useState<string>("");
@@ -42,7 +41,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
         });
         if (!userRes.ok) throw new Error("No autenticado");
         const userData = await userRes.json();
-        setUserName(userData.graph.displayName || userData.graph.mail || "Usuario");
+        setUserName(userData.graph?.displayName || userData.graph?.mail || "Usuario");
 
         await fetchCategories();
       } catch (err) {
@@ -55,7 +54,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
     checkSession();
   }, []);
 
-  // 🔹 Cargar categorías desde backend
+  // 🔹 Cargar categorías
   const fetchCategories = async () => {
     try {
       const res = await fetch("https://outlook-b.onrender.com/contacts-by-category", {
@@ -99,7 +98,6 @@ export function Dashboard({ onLogout }: DashboardProps) {
       return <CategoryView category={category!} onBack={() => setActiveView("home")} />;
     }
     if (activeView === "courses") return <CourseManagement onBack={() => setActiveView("home")} />;
-    //if (activeView === "history") return <FileHistory onBack={() => setActiveView("home")} />;
 
     return (
       <div className="space-y-6">
@@ -178,38 +176,29 @@ export function Dashboard({ onLogout }: DashboardProps) {
     );
   };
 
-    // 🔹 Navegación reutilizable
   const NavigationContent = () => (
     <>
       <div className="p-6 border-b border-slate-200">
         <h1 className="text-slate-800">Sistema de Gestión</h1>
         <p className="text-slate-600 text-sm">Contactos y Estudiantes</p>
       </div>
-
       <nav className="p-4 space-y-2">
         <Button
           variant={activeView === "home" ? "default" : "ghost"}
           className="w-full justify-start"
-          onClick={() => {
-            setActiveView("home");
-            setMobileMenuOpen(false);
-          }}
+          onClick={() => setActiveView("home")}
         >
-          <Users className="w-4 h-4 mr-2" />
-          Dashboard
+          <Users className="w-4 h-4 mr-2" /> Dashboard
         </Button>
-
         <div className="pt-4">
           <p className="text-xs text-slate-500 mb-2 px-3">CATEGORÍAS OUTLOOK</p>
           {outlookCategories.map((category) => (
-            <Button
-              key={category.id}
-              variant="ghost"
-              className="w-full justify-start text-sm"
-              onClick={() => handleCategorySelect(category.id)}
-            >
-              <Folder className="w-4 h-4 mr-2" />
-              <span className="truncate">{category.name}</span>
+            <Button key={category.id}
+                    variant="ghost"
+                    className="w-full justify-start text-sm"
+                    onClick={() => handleCategorySelect(category.id)}>
+                              <Folder className="w-4 h-4 mr-2" />
+              {category.name}
             </Button>
           ))}
         </div>
@@ -226,17 +215,6 @@ export function Dashboard({ onLogout }: DashboardProps) {
           >
             <FileSpreadsheet className="w-4 h-4 mr-2" />
             Gestión de Cursos
-          </Button>
-          <Button
-            variant={activeView === "history" ? "default" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => {
-              setActiveView("history");
-              setMobileMenuOpen(false);
-            }}
-          >
-            <Clock className="w-4 h-4 mr-2" />
-            Historial de Archivos
           </Button>
         </div>
       </nav>
@@ -286,6 +264,9 @@ export function Dashboard({ onLogout }: DashboardProps) {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-64 p-0">
+                  <SheetHeader>
+                    <SheetTitle>Menú de navegación</SheetTitle>
+                  </SheetHeader>
                   <NavigationContent />
                 </SheetContent>
               </Sheet>

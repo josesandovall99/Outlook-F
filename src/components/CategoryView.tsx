@@ -117,59 +117,56 @@ export function CategoryView({ category, onBack }: CategoryViewProps) {
       </Card>
 
       {/* Lista de contactos */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg text-slate-800">Contactos</h2>
-          <p className="text-slate-600 text-sm">
-            Mostrando {filteredContacts.length} de {contacts.length}
-          </p>
-        </div>
+<Card className="p-6">
+  <div className="flex items-center justify-between mb-4">
+    <h2 className="text-lg text-slate-800">Contactos</h2>
+    <p className="text-slate-600 text-sm">
+      Mostrando {filteredContacts.length} de {contacts.length}
+    </p>
+  </div>
 
-        {filteredContacts.length > 0 ? (
-          <div className="space-y-3">
-            {filteredContacts.map((contact) => (
-              <div
-                key={contact.id}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors gap-3"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm flex-shrink-0">
-                    <User className="w-5 h-5 text-slate-600" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-slate-800 truncate">{contact.name}</h3>
-                    <p className="text-slate-600 text-sm">{contact.department}</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-sm pl-14 sm:pl-0">
-                  <div className="flex items-center space-x-2 text-slate-600">
-                    <Mail className="w-4 h-4 flex-shrink-0" />
-                    <span className="truncate">{contact.email}</span>
-                  </div>
-                  {contact.phone && (
-                    <div className="flex items-center space-x-2 text-slate-600">
-                      <Phone className="w-4 h-4 flex-shrink-0" />
-                      <span>{contact.phone}</span>
-                    </div>
-                  )}
-                  <Button variant="ghost" size="sm" className="self-start sm:self-auto">
-                    Ver detalles
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-6 h-6 text-slate-400" />
+  {filteredContacts.length > 0 ? (
+    <div className="space-y-3">
+      {filteredContacts.map((contact) => (
+        <div
+          key={contact.id}
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors gap-3"
+        >
+          <div className="flex items-center space-x-4">
+            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm flex-shrink-0">
+              <User className="w-5 h-5 text-slate-600" />
             </div>
-            <h3 className="text-slate-800 mb-1">No se encontraron contactos</h3>
-            <p className="text-slate-600 text-sm">Intenta modificar los términos de búsqueda</p>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-slate-800 truncate">{contact.name}</h3>
+              <p className="text-slate-600 text-sm">{contact.department}</p>
+            </div>
           </div>
-        )}
-      </Card>
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-sm pl-14 sm:pl-0">
+            <div className="flex items-center space-x-2 text-slate-600">
+              <Mail className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">{contact.email}</span>
+            </div>
+            {contact.phone && (
+              <div className="flex items-center space-x-2 text-slate-600">
+                <Phone className="w-4 h-4 flex-shrink-0" />
+                <span>{contact.phone}</span>
+              </div>
+            )}
+            <Button variant="ghost" size="sm" className="self-start sm:self-auto">
+              Ver detalles
+            </Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div className="text-center py-8">
+      <h3 className="text-slate-800 mb-1">No se encontraron contactos</h3>
+      <p className="text-slate-600 text-sm">Intenta modificar los términos de búsqueda</p>
+    </div>
+  )}
+</Card>
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
