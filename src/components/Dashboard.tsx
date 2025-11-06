@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { Card } from "./ui/card";
+import { Button } from "./ui/button";
 import {
   Users, FileSpreadsheet, Folder, Settings,
-  GraduationCap, ChevronRight, Menu
+  GraduationCap, ChevronRight
 } from "lucide-react";
 import { CategoryView } from "./CategoryView";
 import { CourseManagement } from "./CourseManagement";
@@ -23,7 +25,6 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const [outlookCategories, setOutlookCategories] = useState<Category[]>([]);
   const [userName, setUserName] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const token = localStorage.getItem("accessToken");
 
   useEffect(() => {
@@ -68,6 +69,8 @@ export function Dashboard({ onLogout }: DashboardProps) {
           color: ["bg-blue-500", "bg-green-500", "bg-yellow-500", "bg-red-500"][idx % 4],
         }));
         setOutlookCategories(categoriesArray);
+      } else {
+        console.error("Error cargando categorías");
       }
     } catch (err) {
       console.error(err);
@@ -77,7 +80,6 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId);
     setActiveView("category");
-    setMobileMenuOpen(false);
   };
 
   const handleLogout = async () => {
@@ -105,24 +107,40 @@ export function Dashboard({ onLogout }: DashboardProps) {
       const category = outlookCategories.find(c => c.id === selectedCategory);
       return <CategoryView category={category!} onBack={() => setActiveView("home")} />;
     }
+
     if (activeView === "courses") {
       return <CourseManagement onBack={() => setActiveView("home")} />;
     }
+
+    // Vista "home" (cuerpo del dashboard)
     return (
       <div className="space-y-6">
-        <div className="p-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-              <GraduationCap className="w-6 h-6" />
+        {/* Tarjeta bienvenida con botón verde para gestión de cursos */}
+        <Card className="p-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+                <GraduationCap className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl mb-1">Bienvenido, {userName}</h2>
+                <p className="text-blue-100">
+                  Selecciona una categoría o gestiona tus cursos.
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl mb-1">Bienvenido, {userName}</h2>
-              <p className="text-blue-100">Selecciona una categoría o gestiona tus cursos.</p>
-            </div>
+            {/* Botón verde para ir a Gestión de Cursos (visible también en móvil/tablet) */}
+            <Button
+              onClick={() => setActiveView("courses")}
+              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
+            >
+              <FileSpreadsheet className="w-4 h-4 mr-2" /> Ir a Gestión de Cursos
+            </Button>
           </div>
-        </div>
+        </Card>
 
-        <div className="p-6 bg-white rounded-lg shadow">
+        {/* Lista de categorías */}
+        <Card className="p-6">
           <h3 className="text-slate-800 mb-4">Categorías de Contactos</h3>
           {outlookCategories.length === 0 ? (
             <p className="text-slate-500">No hay categorías disponibles.</p>
@@ -146,7 +164,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
               ))}
             </div>
           )}
-        </div>
+        </Card>
       </div>
     );
   };
@@ -160,45 +178,64 @@ export function Dashboard({ onLogout }: DashboardProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
-      {/* Sidebar fijo en desktop */}
-      <div className="hidden lg:block w-64 bg-white shadow-sm border-r border-slate-200 min-h-screen p-4 space-y-2">
-        <button
-          className={`w-full flex items-center p-2 rounded ${activeView === "home" ? "bg-blue-100" : "hover:bg-slate-100"}`}
-          onClick={() => setActiveView("home")}
-        >
-          <Users className="w-4 h-4 mr-2" /> Dashboard
-        </button>
+    <div className="min-h-screen bg-slate-50">
+      <div className="flex">
+        {/* Sidebar SOLO en desktop */}
+        <div className="hidden lg:block w-64 bg-white shadow-sm border-r border-slate-200 min-h-screen relative">
+          <div className="p-6 border-b border-slate-200">
+            <h1 className="text-xl text-slate-800">Sistema de Gestión</h1>
+            <p className="text-slate-600 text-sm">Contactos y Estudiantes</p>
+          </div>
 
-        <p className="text-xs text-slate-500 mt-4">CATEGORÍAS</p>
-        {outlookCategories.map((c) => (
-          <button
-            key={c.id}
-            className="w-full flex items-center p-2 rounded hover:bg-slate-100 text-sm"
-            onClick={() => handleCategorySelect(c.id)}
-          >
-            <Folder className="w-4 h-4 mr-2" /> {c.name}
-          </button>
-        ))}
+          <nav className="p-4 space-y-2">
+            <Button
+              variant={activeView === "home" ? "default" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => setActiveView("home")}
+            >
+              <Users className="w-4 h-4 mr-2" /> Dashboard
+            </Button>
 
-        <p className="text-xs text-slate-500 mt-4">HERRAMIENTAS</p>
-        <button
-          className={`w-full flex items-center p-2 rounded ${activeView === "courses" ? "bg-blue-100" : "hover:bg-slate-100"}`}
-          onClick={() => setActiveView("courses")}
-        >
-          <FileSpreadsheet className="w-4 h-4 mr-2" /> Gestión de Cursos
-        </button>
+            <div className="pt-4">
+              <p className="text-xs text-slate-500 mb-2 px-3">CATEGORÍAS OUTLOOK</p>
+              {outlookCategories.map((category) => (
+                <Button
+                  key={category.id}
+                  variant="ghost"
+                  className="w-full justify-start text-sm"
+                  onClick={() => handleCategorySelect(category.id)}
+                >
+                  <Folder className="w-4 h-4 mr-2" /> {category.name}
+                </Button>
+              ))}
+            </div>
 
-        <button
-          className="w-full flex items-center p-2 rounded hover:bg-slate-100 text-slate-600 mt-4"
-          onClick={handleLogout}
-        >
-          <Settings className="w-4 h-4 mr-2" /> Cerrar Sesión
-        </button>
+            <div className="pt-4">
+              <p className="text-xs text-slate-500 mb-2 px-3">HERRAMIENTAS</p>
+              {/* Botón verde en el sidebar para Gestión de Cursos */}
+              <Button
+                className="w-full justify-start bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => setActiveView("courses")}
+              >
+                <FileSpreadsheet className="w-4 h-4 mr-2" /> Gestión de Cursos
+              </Button>
+            </div>
+          </nav>
+
+          <div className="absolute bottom-4 left-4 right-4">
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-slate-600"
+              onClick={handleLogout}
+            >
+              <Settings className="w-4 h-4 mr-2" /> Cerrar Sesión
+            </Button>
+          </div>
+        </div>
+
+        {/* Contenido principal */}
+        <div className="flex-1 p-4 md:p-6">{renderContent()}</div>
       </div>
-
-      {/* Contenido principal */}
-      <div className="flex-1 p-4 md:p-6">{renderContent()}</div>
     </div>
   );
 }
