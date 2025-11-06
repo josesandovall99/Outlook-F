@@ -12,7 +12,12 @@ import {
   Merge,
   Loader2,
   Download,
+  Users,
+  Folder,
+  Settings,
+  Menu
 } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 
 interface CourseManagementProps {
   onBack: () => void;
@@ -35,6 +40,7 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState<"setup" | "upload" | "merge" | "result">("setup");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const token = localStorage.getItem("accessToken");
 
   const handleFileUpload = (fileNumber: 1 | 2, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,156 +118,186 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <Button variant="ghost" size="sm" onClick={onBack} className="text-slate-600 self-start">
+    <div className="min-h-screen bg-slate-50 flex">
+      {/* Sidebar fijo en desktop */}
+      <div className="hidden lg:block w-64 bg-white shadow-sm border-r border-slate-200 min-h-screen p-4 space-y-2">
+        <Button variant="ghost" className="w-full justify-start" onClick={onBack}>
           <ArrowLeft className="w-4 h-4 mr-2" /> Volver
         </Button>
-        <div>
-          <h1 className="text-2xl text-slate-800 font-semibold">Crear Nueva Categoría</h1>
-          <p className="text-slate-600 text-sm">
-            Unifica estudiantes de dos plataformas universitarias en una categoría de Outlook
-          </p>
-        </div>
+        <Button variant="default" className="w-full justify-start">
+          <FileSpreadsheet className="w-4 h-4 mr-2" /> Gestión de Cursos
+        </Button>
+        <Button variant="ghost" className="w-full justify-start text-slate-600 mt-4">
+          <Settings className="w-4 h-4 mr-2" /> Configuración
+        </Button>
       </div>
 
-      {/* Progress */}
-      <Card className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-slate-600">Progreso</span>
-          <span className="text-sm text-slate-600">{getStepProgress()}%</span>
-        </div>
-        <Progress value={getStepProgress()} className="h-2" />
-      </Card>
-
-      {/* Paso 1 */}
-      {currentStep === "setup" && (
-        <Card className="p-6 space-y-4">
-          <Label>Nombre de la categoría</Label>
-          <Input
-            value={categoryName}
-            onChange={(e) => setCategoryName(e.target.value)}
-            placeholder="Ej: INTEGRA2025-II"
-          />
-          <Button
-            onClick={() => setCurrentStep("upload")}
-            disabled={!categoryName.trim()}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            Continuar
-          </Button>
-        </Card>
-      )}
-
-      {/* Paso 2 */}
-      {currentStep === "upload" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {[file1, file2].map((fileData, i) => (
-            <Card key={i} className="p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <FileSpreadsheet className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg text-slate-800 font-medium">
-                  Plataforma {i === 0 ? "A (Moodle)" : "B (Galileo)"}
-                </h2>
-              </div>
-
-              {!fileData ? (
-                <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
-                  <Upload className="w-8 h-8 text-slate-400 mx-auto mb-3" />
-                  <p className="text-slate-600 mb-4">Sube un archivo Excel</p>
-                  <input
-                    type="file"
-                    accept=".xlsx,.xls,.csv"
-                    id={`file-${i}`}
-                    className="hidden"
-                    onChange={(e) => handleFileUpload(i === 0 ? 1 : 2, e)}
-                  />
-                  <label htmlFor={`file-${i}`}>
-                    <Button asChild variant="outline" className="w-full sm:w-auto">
-                      <span>Seleccionar archivo</span>
-                    </Button>
-                  </label>
-                </div>
-              ) : (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <div>
-                        <h3 className="text-green-800">{fileData.name}</h3>
-                        <p className="text-green-600 text-sm">{fileData.size}</p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => (i === 0 ? setFile1(null) : setFile2(null))}
-                    >
-                      Cambiar
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Paso 3 */}
-      {currentStep === "upload" && file1 && file2 && (
-        <Card className="p-6 text-center">
-          <Button
-            onClick={handleMergeFiles}
-            disabled={isProcessing}
-            className="bg-orange-600 hover:bg-orange-700 text-white w-full sm:w-auto"
-          >
-            {isProcessing ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Merge className="w-4 h-4 mr-2" />
-            )}
-            {isProcessing ? "Procesando..." : "Unificar archivos"}
-          </Button>
-        </Card>
-      )}
-
-      {/* Paso 4 */}
-      {currentStep === "result" && (
-        <Card className="p-6 text-center space-y-4">
-          <CheckCircle className="w-10 h-10 text-green-600 mx-auto" />
-          <h2 className="text-xl text-slate-800 font-medium">
-            CSV generado para la categoría "{categoryName}"
-          </h2>
-          {totalRegistros && (
-            <p className="text-slate-600">Total de registros: {totalRegistros}</p>
-          )}
-          {message && <p className="text-green-700">{message}</p>}
-
-          <div className="flex flex-col sm:flex-row gap-2 justify-center">
-            <Button
-              onClick={handleDownloadCSV}
-              className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
-            >
-              <Download className="w-4 h-4 mr-2" /> Descargar CSV
+      {/* Sidebar móvil con trigger */}
+      <div className="lg:hidden bg-white border-b border-slate-200 p-4 sticky top-0 z-20 flex justify-between items-center w-full">
+        <h1 className="text-slate-800">Gestión de Cursos</h1>
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Menu className="w-5 h-5" />
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setCategoryName("");
-                setFile1(null);
-                setFile2(null);
-                setCsvPath(null);
-                setTotalRegistros(null);
-                setCurrentStep("setup");
-              }}
-              className="w-full sm:w-auto"
-            >
-              Reiniciar
-            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-72 p-0">
+            <SheetHeader className="p-4 border-b">
+              <SheetTitle>Menú</SheetTitle>
+            </SheetHeader>
+            <div className="p-4 space-y-2">
+              <Button variant="ghost" className="w-full justify-start" onClick={onBack}>
+                <ArrowLeft className="w-4 h-4 mr-2" /> Volver
+              </Button>
+              <Button variant="default" className="w-full justify-start">
+                <FileSpreadsheet className="w-4 h-4 mr-2" /> Gestión de Cursos
+              </Button>
+              <Button variant="ghost" className="w-full justify-start text-slate-600 mt-4">
+                <Settings className="w-4 h-4 mr-2" /> Configuración
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Contenido principal */}
+      <div className="flex-1 p-4 md:p-6 space-y-6">
+        {/* Progress */}
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-slate-600">Progreso</span>
+            <span className="text-sm text-slate-600">{getStepProgress()}%</span>
           </div>
+          <Progress value={getStepProgress()} className="h-2" />
         </Card>
-      )}
+
+        {/* Paso 1 */}
+        {currentStep === "setup" && (
+          <Card className="p-6 space-y-4">
+            <Label>Nombre de la categoría</Label>
+            <Input
+              value={categoryName}
+              onChange={(e) => setCategoryName(e.target.value)}
+              placeholder="Ej: INTEGRA2025-II"
+            />
+            <Button
+              onClick={() => setCurrentStep("upload")}
+              disabled={!categoryName.trim()}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Continuar
+            </Button>
+          </Card>
+        )}
+
+        {/* Paso 2 */}
+        {currentStep === "upload" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[file1, file2].map((fileData, i) => (
+              <Card key={i} className="p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <FileSpreadsheet className="w-5 h-5 text-blue-600" />
+                  <h2 className="text-lg text-slate-800 font-medium">
+                    Plataforma {i === 0 ? "A (Moodle)" : "B (Galileo)"}
+                  </h2>
+                </div>
+                {!fileData ? (
+                  <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
+                                        <Upload className="w-8 h-8 text-slate-400 mx-auto mb-3" />
+                    <p className="text-slate-600 mb-4">Sube un archivo Excel</p>
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls,.csv"
+                      id={`file-${i}`}
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(i === 0 ? 1 : 2, e)}
+                    />
+                    <label htmlFor={`file-${i}`}>
+                      <Button asChild variant="outline" className="w-full sm:w-auto">
+                        <span>Seleccionar archivo</span>
+                      </Button>
+                    </label>
+                  </div>
+                ) : (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <CheckCircle className="w-5 h-5 text-green-500" />
+                        <div>
+                          <h3 className="text-green-800">{fileData.name}</h3>
+                          <p className="text-green-600 text-sm">{fileData.size}</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => (i === 0 ? setFile1(null) : setFile2(null))}
+                      >
+                        Cambiar
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Paso 3 */}
+        {currentStep === "upload" && file1 && file2 && (
+          <Card className="p-6 text-center">
+            <Button
+              onClick={handleMergeFiles}
+              disabled={isProcessing}
+              className="bg-orange-600 hover:bg-orange-700 text-white w-full sm:w-auto"
+            >
+              {isProcessing ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Merge className="w-4 h-4 mr-2" />
+              )}
+              {isProcessing ? "Procesando..." : "Unificar archivos"}
+            </Button>
+          </Card>
+        )}
+
+        {/* Paso 4 */}
+        {currentStep === "result" && (
+          <Card className="p-6 text-center space-y-4">
+            <CheckCircle className="w-10 h-10 text-green-600 mx-auto" />
+            <h2 className="text-xl text-slate-800 font-medium">
+              CSV generado para la categoría "{categoryName}"
+            </h2>
+            {totalRegistros && (
+              <p className="text-slate-600">Total de registros: {totalRegistros}</p>
+            )}
+            {message && <p className="text-green-700">{message}</p>}
+
+            <div className="flex flex-col sm:flex-row gap-2 justify-center">
+              <Button
+                onClick={handleDownloadCSV}
+                className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
+              >
+                <Download className="w-4 h-4 mr-2" /> Descargar CSV
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setCategoryName("");
+                  setFile1(null);
+                  setFile2(null);
+                  setCsvPath(null);
+                  setTotalRegistros(null);
+                  setCurrentStep("setup");
+                }}
+                className="w-full sm:w-auto"
+              >
+                Reiniciar
+              </Button>
+            </div>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
