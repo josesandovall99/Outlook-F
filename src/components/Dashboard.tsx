@@ -3,7 +3,7 @@ import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import {
   Users, FileSpreadsheet, Folder, Settings,
-  Mail, GraduationCap, ChevronRight
+  Mail, GraduationCap, ChevronRight, Menu
 } from "lucide-react";
 import { CategoryView } from "./CategoryView";
 import { CourseManagement } from "./CourseManagement";
@@ -25,26 +25,21 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const [outlookCategories, setOutlookCategories] = useState<Category[]>([]);
   const [userName, setUserName] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
   const token = localStorage.getItem("accessToken");
 
-  // 🔹 Verificar sesión y cargar datos del usuario
   useEffect(() => {
     const checkSession = async () => {
       try {
-        
-
-        // Cargar datos del usuario autenticado
         const userRes = await fetch("https://outlook-b.onrender.com/me", {
           credentials: "include",
           headers: {
-    Authorization: `Bearer ${token}`,
-    Accept: "application/json",
-  },
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
         });
         const userData = await userRes.json();
         setUserName(userData.displayName || userData.mail || "Usuario");
-
-        // Cargar categorías
         await fetchCategories();
       } catch (err) {
         console.error("Error verificando sesión:", err);
@@ -53,22 +48,19 @@ export function Dashboard({ onLogout }: DashboardProps) {
         setLoading(false);
       }
     };
-
     checkSession();
   }, []);
 
-  // 🔹 Cargar categorías desde backend
   const fetchCategories = async () => {
     try {
       const res = await fetch("https://outlook-b.onrender.com/contacts-by-category", {
         method: "GET",
         credentials: "include",
-       headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
         },
       });
-
       if (res.ok) {
         const data = await res.json();
         const categoriesArray: Category[] = Object.keys(data).map((key, idx) => ({
@@ -78,47 +70,37 @@ export function Dashboard({ onLogout }: DashboardProps) {
           color: ["bg-blue-500", "bg-green-500", "bg-yellow-500", "bg-red-500"][idx % 4],
         }));
         setOutlookCategories(categoriesArray);
-      } else {
-        console.error("Error cargando categorías");
       }
     } catch (err) {
       console.error(err);
     }
   };
 
-  // 🔹 Seleccionar una categoría
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId);
     setActiveView("category");
+    setMenuOpen(false);
   };
 
   const handleLogout = async () => {
-  try {
-    await fetch("https://outlook-b.onrender.com/logout", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-    Authorization: `Bearer ${token}`,
-    Accept: "application/json",
-  },
-    });
-  } catch (error) {
-    console.error("Error al cerrar sesión:", error);
-  } finally {
-    localStorage.clear();
-    sessionStorage.clear();
-
-    if (onLogout) {
-      onLogout(); // 👈 Llama la función del App.tsx que cambia el estado a "login"
-    } else {
-      window.location.href = "/"; // Fallback por si no existe prop
+    try {
+      await fetch("https://outlook-b.onrender.com/logout", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    } finally {
+      localStorage.clear();
+      sessionStorage.clear();
+      onLogout ? onLogout() : (window.location.href = "/");
     }
-  }
-};
+  };
 
-
-
-  // 🔹 Renderiza contenido según vista activa
   const renderContent = () => {
     if (activeView === "category" && selectedCategory) {
       const category = outlookCategories.find(c => c.id === selectedCategory);
@@ -131,7 +113,6 @@ export function Dashboard({ onLogout }: DashboardProps) {
 
     return (
       <div className="space-y-6">
-        {/* Tarjeta bienvenida */}
         <Card className="p-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
@@ -139,12 +120,13 @@ export function Dashboard({ onLogout }: DashboardProps) {
             </div>
             <div>
               <h2 className="text-xl mb-1">Bienvenido, {userName}</h2>
-              <p className="text-blue-100">Selecciona una categoría o gestiona tus cursos.</p>
+              <p className="text-blue-100 text-sm">
+                Selecciona una categoría o gestiona tus cursos.
+              </p>
             </div>
           </div>
         </Card>
 
-        {/* Lista de categorías desde backend */}
         <Card className="p-6">
           <h3 className="text-slate-800 mb-4">Categorías de Contactos</h3>
           {outlookCategories.length === 0 ? (
@@ -184,19 +166,30 @@ export function Dashboard({ onLogout }: DashboardProps) {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Header móvil */}
+      <div className="md:hidden flex items-center justify-between bg-white shadow-sm p-4">
+        <h1 className="text-lg font-semibold text-slate-800">Sistema de Gestión</h1>
+        <Button variant="ghost" size="icon" onClick={() => setMenuOpen(!menuOpen)}>
+          <Menu className="w-5 h-5" />
+        </Button>
+      </div>
+
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white shadow-sm border-r border-slate-200 min-h-screen relative">
-          <div className="p-6 border-b border-slate-200">
+        <div
+          className={`fixed md:static top-0 left-0 z-40 bg-white border-r border-slate-200 min-h-screen w-64 transform transition-transform duration-200 ease-in-out
+          ${menuOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+        >
+          <div className="p-6 border-b border-slate-200 hidden md:block">
             <h1 className="text-xl text-slate-800">Sistema de Gestión</h1>
             <p className="text-slate-600 text-sm">Contactos y Estudiantes</p>
           </div>
 
-          <nav className="p-4 space-y-2">
+          <nav className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-120px)]">
             <Button
               variant={activeView === "home" ? "default" : "ghost"}
               className="w-full justify-start"
-              onClick={() => setActiveView("home")}
+              onClick={() => { setActiveView("home"); setMenuOpen(false); }}
             >
               <Users className="w-4 h-4 mr-2" />
               Dashboard
@@ -222,7 +215,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
               <Button
                 variant={activeView === "courses" ? "default" : "ghost"}
                 className="w-full justify-start"
-                onClick={() => setActiveView("courses")}
+                onClick={() => { setActiveView("courses"); setMenuOpen(false); }}
               >
                 <FileSpreadsheet className="w-4 h-4 mr-2" />
                 Gestión de Cursos
@@ -242,7 +235,8 @@ export function Dashboard({ onLogout }: DashboardProps) {
           </div>
         </div>
 
-        <div className="flex-1 p-6">{renderContent()}</div>
+        {/* Contenido principal */}
+        <div className="flex-1 p-4 md:p-6 mt-14 md:mt-0">{renderContent()}</div>
       </div>
     </div>
   );
