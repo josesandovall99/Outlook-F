@@ -5,8 +5,13 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Progress } from "./ui/progress";
 import {
-  ArrowLeft, Upload, FileSpreadsheet, CheckCircle,
-  Merge, Loader2, Download, Plus, AlertCircle
+  ArrowLeft,
+  Upload,
+  FileSpreadsheet,
+  CheckCircle,
+  Merge,
+  Loader2,
+  Download,
 } from "lucide-react";
 
 interface CourseManagementProps {
@@ -127,12 +132,6 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
           <span className="text-sm text-slate-600">{getStepProgress()}%</span>
         </div>
         <Progress value={getStepProgress()} className="h-2" />
-        <div className="flex justify-between mt-2 text-xs text-slate-500">
-          <span className={currentStep === "setup" ? "text-blue-600" : ""}>Configuración</span>
-          <span className={currentStep === "upload" ? "text-blue-600" : ""}>Carga</span>
-          <span className={currentStep === "merge" ? "text-blue-600" : ""}>Unificación</span>
-          <span className={currentStep === "result" ? "text-blue-600" : ""}>Resultado</span>
-        </div>
       </Card>
 
       {/* Paso 1 */}
@@ -154,57 +153,56 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
         </Card>
       )}
 
-      {/* Paso 2: Carga de Archivos */}
-{currentStep === "upload" && (
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    {[file1, file2].map((fileData, i) => (
-      <Card key={i} className="p-6">
-        <div className="flex items-center space-x-3 mb-4">
-          <FileSpreadsheet className="w-5 h-5 text-blue-600" />
-          <h2 className="text-lg text-slate-800 font-medium">
-            Plataforma {i === 0 ? "A (Moodle)" : "B (Galileo)"}
-          </h2>
-        </div>
-        {/* Input de archivo adaptado */}
-        {!fileData ? (
-          <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
-            <Upload className="w-8 h-8 text-slate-400 mx-auto mb-3" />
-            <p className="text-slate-600 mb-4">Sube un archivo Excel</p>
-            <input
-              type="file"
-              accept=".xlsx,.xls,.csv"
-              id={`file-${i}`}
-              className="hidden"
-              onChange={(e) => handleFileUpload(i === 0 ? 1 : 2, e)}
-            />
-            <label htmlFor={`file-${i}`}>
-              <Button asChild variant="outline" className="w-full sm:w-auto">
-                <span>Seleccionar archivo</span>
-              </Button>
-            </label>
-          </div>
-        ) : (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-green-500" />
-                <div>
-                  <h3 className="text-green-800">{fileData.name}</h3>
-                  <p className="text-green-600 text-sm">
-                    {fileData.size} • {fileData.records} registros
-                  </p>
-                </div>
+      {/* Paso 2 */}
+      {currentStep === "upload" && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[file1, file2].map((fileData, i) => (
+            <Card key={i} className="p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <FileSpreadsheet className="w-5 h-5 text-blue-600" />
+                <h2 className="text-lg text-slate-800 font-medium">
+                  Plataforma {i === 0 ? "A (Moodle)" : "B (Galileo)"}
+                </h2>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => (i === 0 ? setFile1(null) : setFile2(null))}>
-                Cambiar
-              </Button>
-            </div>
-          </div>
-        )}
-      </Card>
-    ))}
-  </div>
-)}
+              {!fileData ? (
+                <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
+                  <Upload className="w-8 h-8 text-slate-400 mx-auto mb-3" />
+                  <p className="text-slate-600 mb-4">Sube un archivo Excel</p>
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls,.csv"
+                    id={`file-${i}`}
+                    className="hidden"
+                    onChange={(e) => handleFileUpload(i === 0 ? 1 : 2, e)}
+                  />
+                  <label htmlFor={`file-${i}`}>
+                    <Button asChild variant="outline" className="w-full sm:w-auto">
+                      <span>Seleccionar archivo</span>
+                    </Button>
+                  </label>
+                </div>
+              ) : (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <div>
+                        <h3 className="text-green-800">{fileData.name}</h3>
+                        <p className="text-green-600 text-sm">
+                          {fileData.size} • {fileData.records} registros
+                        </p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => (i === 0 ? setFile1(null) : setFile2(null))}>
+                      Cambiar
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Paso 3 */}
       {currentStep === "upload" && file1 && file2 && (
@@ -223,6 +221,7 @@ export function CourseManagement({ onBack }: CourseManagementProps) {
           </Button>
         </Card>
       )}
+
 
       {/* Paso 4 */}
       {currentStep === "result" && (
