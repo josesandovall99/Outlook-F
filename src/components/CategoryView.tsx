@@ -1,124 +1,198 @@
-import { useState, useEffect } from "react";
-import { Download, Filter } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
+import { Input } from "./ui/input";
+import { 
+  ArrowLeft, 
+  Search, 
+  Filter, 
+  Download, 
+  Mail, 
+  Phone,
+  User
+} from "lucide-react";
+// 🔹 Definición de tipos
+interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  department?: string;
+}
 
 interface Category {
   id: string;
   name: string;
-  description?: string;
+  count: number;
+  color: string;
 }
 
 interface CategoryViewProps {
-  category: Category | null;
+  category: Category;
   onBack: () => void;
 }
 
 export function CategoryView({ category, onBack }: CategoryViewProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [filtered, setFiltered] = useState<Category[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("accessToken");
 
-  // Cargar categorías desde backend
+  // 🔹 Cargar contactos desde la API por categoría
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
+    const fetchContacts = async () => {
+      try {
+        const res = await fetch("https://outlook-b.onrender.com/contacts-by-category", {
+          credentials: "include",
+          headers: {
+    Authorization: `Bearer ${token}`,
+    Accept: "application/json",
+  },
 
-    fetch("https://outlook-b.onrender.com/api/categories", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-    })
-      .then(async (res) => {
+        });
         if (res.ok) {
           const data = await res.json();
-          setCategories(data);
-          setFiltered(data);
-        } else {
-          console.error("Error cargando categorías");
-        }
-      })
-      .catch((err) => console.error("Error:", err));
-  }, []);
+          const contactsFromCategory = data[category.name] || [];
+          const mappedContacts = contactsFromCategory.map((c: any, idx: number) => ({
+            id: c.id || idx.toString(),
+            name: c.nombre || "Sin nombre",
+            email: c.correo || "Sin email",
+            phone: "",
+            department: "",
+          }));
 
-  // Filtrar categorías
-  useEffect(() => {
-    if (!searchTerm) {
-      setFiltered(categories);
-    } else {
-      const filteredList = categories.filter((cat) =>
-        cat.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFiltered(filteredList);
-    }
-  }, [searchTerm, categories]);
+          setContacts(mappedContacts);
+        } else {
+          console.error("Error al cargar contactos desde la API");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContacts();
+  }, [category]);
+
+  const filteredContacts = contacts.filter(contact =>
+    contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (contact.department && contact.department.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-slate-600">
+        <p className="animate-pulse">Cargando contactos de {category.name}...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header responsive */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-gray-800">
-          Categorías disponibles
-        </h1>
-
-        {/* Controles (filtros / exportar) */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-          <div className="relative flex-1 sm:flex-none">
-            <input
-              type="text"
-              placeholder="Buscar categoría..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full sm:w-64 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <Filter className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="text-slate-600"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Volver
+          </Button>
+          <div className="flex items-center space-x-3">
+            <div className={`w-4 h-4 rounded-full ${category.color}`}></div>
+            <div>
+              <h1 className="text-2xl text-slate-800">{category.name}</h1>
+              <p className="text-slate-600">{contacts.length} contactos</p>
+            </div>
           </div>
-          <button className="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
-            <Download className="h-4 w-4 mr-2" />
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" size="sm">
+            <Filter className="w-4 h-4 mr-2" />
+            Filtrar
+          </Button>
+          <Button variant="outline" size="sm">
+            <Download className="w-4 h-4 mr-2" />
             Exportar
-          </button>
+          </Button>
         </div>
       </div>
 
-      {/* Grid responsive de categorías */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((cat) => (
-          <div
-            key={cat.id}
-            className="flex flex-col justify-between rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
-          >
-            <div className="min-w-0">
-              <h2 className="truncate text-lg font-semibold text-gray-900">
-                {cat.name}
-              </h2>
-              <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                {cat.description || "Sin descripción"}
-              </p>
-            </div>
-            <button
-              onClick={() => console.log("Seleccionar categoría:", cat.id)}
-              className="mt-4 rounded-md bg-blue-500 px-3 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-colors"
-            >
-              Ver más
-            </button>
-          </div>
-        ))}
+      {/* Barra de búsqueda */}
+      <Card className="p-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+          <Input
+            placeholder="Buscar contactos por nombre, email o departamento..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </Card>
 
-        {filtered.length === 0 && (
-          <p className="text-gray-500 text-sm sm:col-span-2 lg:col-span-3">
-            No se encontraron categorías.
+      {/* Lista de contactos */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg text-slate-800">Contactos</h2>
+          <p className="text-slate-600 text-sm">
+            Mostrando {filteredContacts.length} de {contacts.length}
           </p>
-        )}
-      </div>
+        </div>
 
-      {/* Botón de regreso (si aplica) */}
-      {category && (
-        <button
-          onClick={onBack}
-          className="self-start rounded-md border border-gray-300 px-3 py-2 text-sm hover:bg-gray-100 transition-colors"
-        >
-          ← Volver
-        </button>
-      )}
+        {filteredContacts.length > 0 ? (
+          <div className="space-y-3">
+            {filteredContacts.map((contact) => (
+              <div 
+                key={contact.id}
+                className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+                    <User className="w-5 h-5 text-slate-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-slate-800">{contact.name}</h3>
+                    <p className="text-slate-600 text-sm">{contact.department}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-6 text-sm">
+                  <div className="flex items-center space-x-2 text-slate-600">
+                    <Mail className="w-4 h-4" />
+                    <span>{contact.email}</span>
+                  </div>
+                  {contact.phone && (
+                    <div className="flex items-center space-x-2 text-slate-600">
+                      <Phone className="w-4 h-4" />
+                      <span>{contact.phone}</span>
+                    </div>
+                  )}
+                  <Button variant="ghost" size="sm">
+                    Ver detalles
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-6 h-6 text-slate-400" />
+            </div>
+            <h3 className="text-slate-800 mb-1">No se encontraron contactos</h3>
+            <p className="text-slate-600 text-sm">
+              Intenta modificar los términos de búsqueda
+            </p>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
