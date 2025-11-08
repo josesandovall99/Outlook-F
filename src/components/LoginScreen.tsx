@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import logo from "../assets/udes-og-1200-630.png";
 
 type LoginScreenProps = {
   setAppState: (state: "checking" | "login" | "permissions" | "dashboard") => void;
@@ -56,7 +57,7 @@ export function LoginScreen({ setAppState }: LoginScreenProps) {
         {/* Imagen y título */}
         <div className="text-center mb-8">
           <ImageWithFallback
-            src="https://images.unsplash.com/photo-1671944378859-08bcfa15a280?..."
+            src={logo}
             alt="Corporate branding"
             className="w-32 h-32 mx-auto rounded-2xl shadow-lg object-cover mb-6"
           />
