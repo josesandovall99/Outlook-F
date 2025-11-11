@@ -41,7 +41,7 @@ Su objetivo es facilitar la creación de categorías y la exportación de contac
 ## Instalación y Ejecución Local
 1. Clonar el repositorio:  
    ```bash
-   git clone [URL-del-repositorio]
+   git clone https://github.com/josesandovall99/Outlook-F.git
 
 
 URL de la aplicacion: https://outlook-f.onrender.com/
