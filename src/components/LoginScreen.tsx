@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import logo from "../assets/udes-og-1200-630.png";
+import logoX from "../assets/Imagen de WhatsApp 2025-11-10 a las 09.15.36_ac7c09d3.jpg";
 
 type LoginScreenProps = {
   setAppState: (state: "checking" | "login" | "permissions" | "dashboard") => void;
@@ -57,7 +58,7 @@ export function LoginScreen({ setAppState }: LoginScreenProps) {
         {/* Imagen y título */}
         <div className="text-center mb-8">
           <ImageWithFallback
-            src={logo}
+            src={logoX}
             alt="Corporate branding"
             className="w-32 h-32 mx-auto rounded-2xl shadow-lg object-cover mb-6"
           />
